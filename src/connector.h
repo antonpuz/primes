@@ -9,6 +9,7 @@
 #define CONNECTOR_H_
 
 #include "gDefines.h"
+#include "mysql.h"
 
 class connector
 {
@@ -17,11 +18,15 @@ public:
 	int getK();
 	void printK();
 
-	connector(int num);
+	connector();
+
+	retVal initANDconnect(const char* DBName);
+	MYSQL_RES* runQuery(const char* query);
 
 private:
 	int k;
-
+    MYSQL            *connection;
+    MYSQL_RES        *resource;
 };
 
 #endif /* CONNECTOR_H_ */
