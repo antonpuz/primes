@@ -12,14 +12,18 @@
 #include "fileparser.h"
 #include "gDefines.h"
 #include "mysql.h"
+#include <sstream>
+#include <unistd.h>
 
 using namespace std;
 
 int main() {
 	retVal rt;
 	string name = "out1.txt";
+	char buffer[1024];
 
-	/*webparser crwl;
+
+	webparser crwl;
 
 	crwl.init(name.c_str());
 	name = "http://en.wikipedia.org/wiki/List_of_state_visits_made_by_Queen_Elizabeth_II";
@@ -29,7 +33,7 @@ int main() {
 
 	if(rt == ok)
 		cout << "DONE!" << endl;
-	*/
+
 	/*
 	connector cnt;
 	MYSQL_RES* res;
@@ -44,6 +48,8 @@ int main() {
        cout << result[0] << " " << result[1] << endl;
     }
     */
-	fileparser psr(name.c_str());
-	psr.parseFile();
+	//fileparser psr(name.c_str());
+	//psr.parseFile();
+
+
 }

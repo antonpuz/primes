@@ -11,6 +11,7 @@
 #include <curl/curl.h>
 #include <unistd.h>
 #include "gDefines.h"
+#include <string>
 
 class webparser
 {
@@ -25,6 +26,7 @@ private:
 	  CURL *curl;
 	  CURLcode res;
 	  FILE* filePtr;
+	  std::string urlCpy;
 
 	  static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream);
 };

@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include "gDefines.h"
 
+#include <sstream>
+#include <unistd.h>
+
 using namespace std;
 
 webparser::webparser()
@@ -28,6 +31,9 @@ retVal webparser::init(const char* outputFileNameStr)
 		perror("error opening file");
 		return error;
 	}
+
+	urlCpy = outputFileNameStr;
+	urlCpy = urlCpy.substr(urlCpy.find_last_of('/') + 1);
 
 	curl = curl_easy_init();
 	if(curl) //creation of the curl has succeded
@@ -59,15 +65,50 @@ retVal webparser::execGet()
 	if(!curl || !filePtr)
 		return error;
 
-	res = curl_easy_perform(curl);
-	fclose(filePtr);
+	//get the temporary file name by the file descriptor
+	stringstream fName;
+	fName << "/proc/self/fd/";
+	fName << fileno(filePtr);
+	int read;
+	char buffer[1024];
+	read = readlink(fName.str().c_str(), buffer, 1024);
+	string fullPathFileName(buffer, read);
+	int last = fullPathFileName.find_last_of('/');
+	string fileName = fullPathFileName.substr(last + 1);
 
-    /* Check for errors */
-    if(res != CURLE_OK)
-    {
-    	perror("curl_easy_perform() failed");
-    	return error;
-    }
+	//check if the file already exists in cache - if not donwload it otherwise use the cached version
+	string path = "cache/";
+	path += urlCpy;
+	if( access( path.c_str(), F_OK ) != -1 ) {
+	    PRINT("file exists in cache");
+	    fclose(filePtr);
+	    //output the cached file to the temporary file
+		string command = "cp ";
+		command += path;
+		command += " ";
+		command += fileName;
+		system(command.c_str());
+
+	    return ok;
+	} else { // file doesnt exist - run the curl query and copy to cache
+		res = curl_easy_perform(curl);
+
+	    /* Check for errors */
+	    if(res != CURLE_OK)
+	    {
+	    	perror("curl_easy_perform() failed");
+	    	return error; // if errors exists dont cache
+	    }
+	    //cache the file
+		string command = "cp ";
+		command += fileName;
+		command += " ";
+		command += path;
+		system(command.c_str());
+		PRINT("FILE WAS CACHED");
+
+		fclose(filePtr);
+	}
 
     return ok;
 }
@@ -76,6 +117,9 @@ retVal webparser::setLink(const char* webSiteLinkStr)
 {
 	if(!curl || !webSiteLinkStr)
 		return error;
+
+	urlCpy = webSiteLinkStr;
+	urlCpy = urlCpy.substr(urlCpy.find_last_of('/') + 1);
 
 	curl_easy_setopt(curl, CURLOPT_URL, webSiteLinkStr); // should be changed later with setLink()
 	return ok;
