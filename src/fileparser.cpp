@@ -13,24 +13,20 @@
 
 using namespace std;
 
-fileparser::fileparser(const char* fileName)
+fileparser::fileparser(const char* fileName) : parser(fileName)
 {
+
 	if(!fileName)
 		perror("no file name inserted - no instance will be made");
 
-	string strTmp(fileName);
-	pFileName = new char[strTmp.length() + 1]();
-	strncpy(pFileName, fileName, strTmp.length() + 1);
 }
 
 fileparser::~fileparser()
 {
 	cout << "destructing the file parser " << endl;
-	delete[] pFileName;
-	pFileName = NULL;
 }
 
-retVal fileparser::parseFile()
+retVal fileparser::parseFile(string startPhase, string endPhase, retVal (*handleFunc)(string phrase))
 {
 	ifstream is (pFileName, ifstream::in | ifstream::binary);
 	if(!is)
@@ -47,18 +43,17 @@ retVal fileparser::parseFile()
 
 	DBG("end of seeking");
 
-	char * buffer = new char [length];
+	char * buffer = new char [length + 1];
 	if(!buffer)
 	{
 		perror("error with allocation of memory");
 		return error;
 	}
 	is.read (buffer,length); //buffer contains the file
+	buffer[length] = '\0';
 	is.close();
 
 	string data(buffer);
-	string startPhase = "<tr";
-	string endPhase = "</tr>";
 	string cuttedData;
 	size_t location = -5;
 	size_t endLocation;
@@ -69,7 +64,7 @@ retVal fileparser::parseFile()
 		{
 			cuttedData = data.substr(location, endLocation - location);
 			//cout << cuttedData << endl;
-			parsePhrase(cuttedData);
+			handleFunc(cuttedData);
 		}
 		else
 		{
@@ -220,5 +215,142 @@ retVal fileparser::parsePhrase(string phrase)
 	}
 
 
+	return ok;
+}
+
+retVal fileparser::tokenizeStringToVector(string startPhase, string endPhase, string mustAppear, std::string special, vector< vector<string> >& dataCollector)
+{
+	ifstream is (pFileName, ifstream::in | ifstream::binary);
+	if(!is)
+	{
+		perror("No file descriptor");
+		return error;
+	}
+	retVal ans;
+	DBG("start of seeking");
+	//load the file into memory
+	// get length of file:
+	is.seekg (0, is.end);
+	int length = is.tellg();
+	is.seekg (0, is.beg);
+
+	DBG("end of seeking");
+
+	char * buffer = new char [length + 1];
+	if(!buffer)
+	{
+		perror("error with allocation of memory");
+		return error;
+	}
+	is.read (buffer,length); //buffer contains the file
+	buffer[length] = '\0';
+	is.close();
+
+	string data(buffer);
+	string cuttedData;
+	string specialData;
+	size_t location = -5;
+	size_t endLocation;
+	size_t specialLocation;
+	int ctr = 0;
+
+	if(special != "")
+	{
+		specialLocation = data.find(special);
+		if(specialLocation != string::npos)
+			specialData = data.substr(specialLocation, 40); // TODO: The 40 size should be changed
+	}
+	else
+	{
+		specialData = "";
+	}
+
+	while((location = data.find(startPhase, location+5)) != string::npos) //iterate through the file
+	{
+		if((endLocation = data.find(endPhase, location)) != string::npos)
+		{
+			if((special != "") && (specialLocation != string::npos) && (specialLocation < location))
+			{
+				specialData = data.substr(specialLocation, 40); // TODO: The 40 size should be changed
+			}
+
+			cuttedData = data.substr(location, endLocation - location);
+			//cout << cuttedData << endl;
+			//vector<string> tmp;
+			if(cuttedData.find(mustAppear) != string::npos)
+				fileparser::handleTable(cuttedData, specialData, dataCollector);
+
+			//if(ctr++ == 5)break; //DEBUG!!!!!!
+			if(special != "")
+			{
+				specialLocation = data.find(special, location);
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	delete[] buffer;
+	return ok;
+
+
+
+	return ok;
+}
+
+retVal fileparser::handleTable(std::string phrase, std::string specialPhrase, std::vector< std::vector<std::string> >& dataCollector)
+{
+	string cuttedData;
+	size_t location = -5;
+	size_t endLocation;
+	string startPhase("<td><span class=\"flagicon\">");
+	string endPhase("</tr>");
+
+	while((location = phrase.find(startPhase, location+5)) != string::npos) //iterate through the file
+	{
+		if((endLocation = phrase.find(endPhase, location)) != string::npos)
+		{
+			cuttedData = phrase.substr(location, endLocation - location); // cutted data is the entire TR area
+			vector< string > tmp;
+			if(specialPhrase != "")
+				tmp.push_back(specialPhrase);
+
+			size_t secondLocation = -5;
+			size_t secondEndLocation;
+
+			cout << cuttedData << endl;
+
+			while((secondLocation = cuttedData.find("<td>", secondLocation+5)) != string::npos) //iterate through the file
+			{
+				if((secondEndLocation = cuttedData.find("</td>", secondLocation)) != string::npos)
+				{
+					PRINT("########################");
+					string tempStr = cuttedData.substr(secondLocation+4, secondEndLocation - secondLocation - 4);
+					PRINT(tempStr);
+					PRINT("$$$$$$$$$$$$$$$$$$$$$$$$");
+					tmp.push_back(tempStr);
+				}
+			}
+			dataCollector.push_back(tmp);
+			tmp.clear();
+		}
+		else
+		{
+			//break;
+		}
+	}
+
+
+
+	return ok;
+}
+
+retVal fileparser::dummyFunc(std::string phrase)
+{
+	string pre = "<h3 class=\"r\"><a href=\"";
+	int loc = phrase.find_first_of("\"", pre.length() + 1);
+	PRINT(phrase.substr(pre.length(), loc-pre.length()));
 	return ok;
 }

@@ -32,9 +32,6 @@ retVal webparser::init(const char* outputFileNameStr)
 		return error;
 	}
 
-	urlCpy = outputFileNameStr;
-	urlCpy = urlCpy.substr(urlCpy.find_last_of('/') + 1);
-
 	curl = curl_easy_init();
 	if(curl) //creation of the curl has succeded
 	{
@@ -69,13 +66,14 @@ retVal webparser::execGet()
 	stringstream fName;
 	fName << "/proc/self/fd/";
 	fName << fileno(filePtr);
+	DBG(fName.str())
 	int read;
 	char buffer[1024];
 	read = readlink(fName.str().c_str(), buffer, 1024);
 	string fullPathFileName(buffer, read);
 	int last = fullPathFileName.find_last_of('/');
 	string fileName = fullPathFileName.substr(last + 1);
-
+	DBG(fileName)
 	//check if the file already exists in cache - if not donwload it otherwise use the cached version
 	string path = "cache/";
 	path += urlCpy;
@@ -83,16 +81,16 @@ retVal webparser::execGet()
 	    PRINT("file exists in cache");
 	    fclose(filePtr);
 	    //output the cached file to the temporary file
-		string command = "cp ";
+		string command = "cp '";
 		command += path;
-		command += " ";
+		command += "' ";
 		command += fileName;
 		system(command.c_str());
 
 	    return ok;
 	} else { // file doesnt exist - run the curl query and copy to cache
 		res = curl_easy_perform(curl);
-
+		PRINT("Getting the file");
 	    /* Check for errors */
 	    if(res != CURLE_OK)
 	    {
@@ -102,12 +100,14 @@ retVal webparser::execGet()
 	    //cache the file
 		string command = "cp ";
 		command += fileName;
-		command += " ";
+		command += " '";
 		command += path;
+		command += "'";
 		system(command.c_str());
 		PRINT("FILE WAS CACHED");
 
 		fclose(filePtr);
+		filePtr=NULL;
 	}
 
     return ok;
