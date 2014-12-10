@@ -148,6 +148,7 @@ PRINT("place 2");
 	int index = 0;
 	char c;
 	int htmlCounter = 0;
+	int scriptCounter = 0;
 	char* bodyPtr = strstr(ptr, "<body");
 	if(bodyPtr)
 	{
@@ -159,14 +160,19 @@ PRINT("place 2");
 			switch (c)
 			{
 			case '<':
-				htmlCounter++;
-				break;
+				{
+					string testStr((char *)(bodyPtr + index), 7);
+					if(testStr == "<script")scriptCounter=1;
+					if(testStr == "</scrip")scriptCounter=0;
+					htmlCounter++;
+					break;
+				}
 			case '>':
 				if(htmlCounter > 0)
 					htmlCounter--;
 				break;
 			default:
-				if(htmlCounter == 0)
+				if((htmlCounter == 0) && (scriptCounter == 0))
 				{
 					//fprintf(pFile, "%c", c);
 					of << c;
