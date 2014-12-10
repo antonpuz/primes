@@ -29,6 +29,11 @@ public:
 	static retVal parsePhrase(std::string phrase);
 	static retVal dummyFunc(std::string phrase);
 	static retVal handleTable(std::string phrase, std::string specialPhrase, std::vector< std::vector<std::string> >& dataCollector);
+	/*
+	 * The type here indicates the kind of wikipedia page we got:
+	 * 1 - Table is devided by years, each year appears at the header of the table
+	 */
+	static retVal cropVector(std::vector<std::string>& data, int type, std::string extraData);
 
 private:
 

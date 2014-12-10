@@ -139,12 +139,12 @@ PRINT("place 2");
 	FILE * pFile;
 	//ofstream of ("out3.txt", ofstream::out);
 	PRINT("starting crop");
-	pFile = fopen("out4.txt", "w");
-	if(!pFile)
-	{
-		perror("No file descriptor");
-		return error;
-	}
+//	pFile = fopen("out4.txt", "w");
+//	if(!pFile)
+//	{
+//		perror("No file descriptor");
+//		return error;
+//	}
 	int index = 0;
 	char c;
 	int htmlCounter = 0;
@@ -162,12 +162,13 @@ PRINT("place 2");
 				htmlCounter++;
 				break;
 			case '>':
-				htmlCounter--;
+				if(htmlCounter > 0)
+					htmlCounter--;
 				break;
 			default:
 				if(htmlCounter == 0)
 				{
-					fprintf(pFile, "%c", c);
+					//fprintf(pFile, "%c", c);
 					of << c;
 				}
 				else
@@ -186,7 +187,7 @@ PRINT("place 2");
 	}
 	delete[] ptr;
 	cout << endl;
-	fclose(pFile);
+	//fclose(pFile);
 	cout << "exited on index" << index << " and html: " << htmlCounter << endl;
 	PRINT("ANTON");
 

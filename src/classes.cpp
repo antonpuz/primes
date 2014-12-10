@@ -7,7 +7,7 @@
 //============================================================================
 
 #include <iostream>
-//#include "connector.h"
+#include "connector.h"
 #include "htmlparser.h"
 #include "webparser.h"
 #include "fileparser.h"
@@ -27,10 +27,12 @@ int main() {
 
 	vector< vector<string> > tokenVector;
 
-//
+
+
+//Download & cache a web page
 	webparser crwl;
 	crwl.init(name.c_str());
-	string baseName = "http://tsamfamily.blogspot.co.il/2012/04/tsam-protest-against-hu-jin-tao-visit.html";
+	string baseName = "http://en.wikipedia.org/wiki/List_of_presidential_trips_made_by_Barack_Obama";
 	crwl.setLink(baseName.c_str());
 	rt = crwl.execGet();
 
@@ -59,39 +61,50 @@ int main() {
 //	}
 
 
-	/*
+
+	//input data into mysql database
 	connector cnt;
 	MYSQL_RES* res;
 	string db = "anton";
 	cnt.initANDconnect(db.c_str());
-	string qur = "SELECT * FROM aa1 ORDER BY a1 ASC";
-	MYSQL_ROW          result;
-	res = cnt.runQuery(qur.c_str());
 
-    while((result = mysql_fetch_row(res))) {
+	//Parse the file with the html parser
+//	name = "out1.txt";
+//	htmlparser parser(name.c_str());
+//	parser.parseFile();
+//	parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
 
-       cout << result[0] << " " << result[1] << endl;
-    }
-    */
+	//The wikipedia parser
 	name = "out1.txt";
-	htmlparser parser(name.c_str());
-	parser.parseFile();
-	parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
-//	fileparser psr(name.c_str());
-//	//psr.tokenizeStringToVector("<h3 class=\"r\"><a href=\"", "</h3>", tokenVector);
-//	psr.tokenizeStringToVector("<td><span class=\"flagicon\">", "</table>", "wikitable","mw-headline" ,tokenVector);
-//
-//	for(int i=0;i<tokenVector.size();i++)
-//	{
-//		PRINT("This sub vector size:");
-//		PRINT(tokenVector[i].size());
-//		//if(tokenVector[i].size() < 3) continue;
-//		for(int j=0;j<tokenVector[i].size();j++)
-//		{
+	fileparser psr(name.c_str());
+	psr.tokenizeStringToVector("<td><span class=\"flagicon\">", "</table>", "wikitable","<span class=\"mw-headline" ,tokenVector);
+
+	int i=0;
+	//for(int i=0;i<tokenVector.size();i++)
+	//{
+		fileparser::cropVector(tokenVector[i], 1, "2009");
+		char month[20];
+		int day;
+//		for (int j=0;j<tokenVector[i].size();j++)
 //			cout << tokenVector[i][j] << "&&&&&&&&&   ";
-//		}
-//		cout << endl;
-//	}
+
+		//insert into vistits values(0,'Vatican City','Queen Elizabeth II',1,4,2014,'England');
+		if(tokenVector[i][1][0] == ' ')tokenVector[i][1].erase(tokenVector[i][1].begin());
+		string qur = "insert into visits values(0,";
+		qur += "'United States','Barack Obama',";
+		qur += tokenVector[i][4];
+		qur += ",";
+		qur += tokenVector[i][3];
+		qur += ",";
+		qur += tokenVector[i][0];
+		qur += ",'";
+		qur += tokenVector[i][1];
+		qur += "')";
+		PRINT(qur);
+		MYSQL_ROW          result;
+		cnt.runQuery(qur.c_str());
+		cout << endl;
+	//}
 
 
 //	vector<string> tmp;

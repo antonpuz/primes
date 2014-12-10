@@ -79,6 +79,7 @@ retVal webparser::execGet()
 	path += urlCpy;
 	if( access( path.c_str(), F_OK ) != -1 ) {
 	    PRINT("file exists in cache");
+	    PRINT(path.c_str());
 	    fclose(filePtr);
 	    //output the cached file to the temporary file
 		string command = "cp '";
@@ -119,7 +120,8 @@ retVal webparser::setLink(const char* webSiteLinkStr)
 		return error;
 
 	urlCpy = webSiteLinkStr;
-	urlCpy = urlCpy.substr(urlCpy.find_last_of('/') + 1);
+	urlCpy = urlCpy.substr(urlCpy.find_last_of('/', urlCpy.length()-2) + 1);
+	if(urlCpy[urlCpy.length()-1] == '/')urlCpy[urlCpy.length()-1]='0';
 
 	curl_easy_setopt(curl, CURLOPT_URL, webSiteLinkStr); // should be changed later with setLink()
 	return ok;

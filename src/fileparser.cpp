@@ -258,7 +258,7 @@ retVal fileparser::tokenizeStringToVector(string startPhase, string endPhase, st
 	{
 		specialLocation = data.find(special);
 		if(specialLocation != string::npos)
-			specialData = data.substr(specialLocation, 40); // TODO: The 40 size should be changed
+			specialData = data.substr(specialLocation, 60); // TODO: The 40 size should be changed
 	}
 	else
 	{
@@ -271,7 +271,7 @@ retVal fileparser::tokenizeStringToVector(string startPhase, string endPhase, st
 		{
 			if((special != "") && (specialLocation != string::npos) && (specialLocation < location))
 			{
-				specialData = data.substr(specialLocation, 40); // TODO: The 40 size should be changed
+				specialData = data.substr(specialLocation, 60); // TODO: The 40 size should be changed
 			}
 
 			cuttedData = data.substr(location, endLocation - location);
@@ -352,5 +352,64 @@ retVal fileparser::dummyFunc(std::string phrase)
 	string pre = "<h3 class=\"r\"><a href=\"";
 	int loc = phrase.find_first_of("\"", pre.length() + 1);
 	PRINT(phrase.substr(pre.length(), loc-pre.length()));
+	return ok;
+}
+
+retVal fileparser::cropVector(std::vector<std::string>& data, int type, std::string extraData)
+{
+	string tmp;
+	size_t beginning;
+	size_t end;
+
+	for(int j=0;j<data.size();j++)
+	{
+		string cut = "";
+		int status = 0;
+		for (int i=0;i<data[j].size();i++)
+		{
+			switch (data[j][i])
+			{
+			case '<':
+				status++;
+				break;
+			case '>':
+				status--;
+				break;
+			default:
+				if(status == 0)cut.push_back(data[j][i]);
+				break;
+			}
+		}
+		data[j] = cut;
+	}
+
+	char month[20];
+	int monthNum;
+	int day;
+	int year;
+	switch (type)
+	{
+	case 1:
+		//get the month and day of the visit
+		sscanf(data[3].c_str(), "%s %d", month, &day);
+		int k = 0;
+		while(month[k] != 0)
+		{
+			month[k] = tolower(month[k]);
+			k++;
+		}
+		monthNum = MonthToNumber[month];
+		stringstream mon;
+		mon << monthNum;
+		data[3] = mon.str();
+		stringstream ss;
+		ss << day;
+		data.push_back(ss.str());
+		//check the year of the visit
+		k = sscanf(data[0].c_str(), "%d", &year);
+		if(k == 0)data[0] = extraData;
+		break;
+	}
+
 	return ok;
 }
