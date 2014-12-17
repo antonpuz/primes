@@ -10,6 +10,7 @@
 #include <sstream>
 #include "connector.h"
 #include <fstream>      // std::ifstream
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -355,6 +356,7 @@ retVal fileparser::dummyFunc(std::string phrase)
 	return ok;
 }
 
+
 retVal fileparser::cropVector(std::vector<std::string>& data, int type, std::string extraData)
 {
 	string tmp;
@@ -409,6 +411,69 @@ retVal fileparser::cropVector(std::vector<std::string>& data, int type, std::str
 		k = sscanf(data[0].c_str(), "%d", &year);
 		if(k == 0)data[0] = extraData;
 		break;
+	}
+
+	return ok;
+}
+
+retVal fileparser::getDates (std::string fileName)
+{
+	ifstream is (fileName, ifstream::in | ifstream::binary);
+	if(!is)
+	{
+		perror("No file descriptor");
+		return error;
+	}
+	//load the file into memory
+	// get length of file:
+	is.seekg (0, is.end);
+	int length = is.tellg();
+	is.seekg (0, is.beg);
+
+	char * buffer = new char [length + 1];
+	if(!buffer)
+	{
+		perror("error with allocation of memory");
+		return error;
+	}
+	is.read (buffer,length); //buffer contains the file
+	buffer[length] = '\0';
+	is.close();
+
+	PRINT("First run");
+	boost::regex r("([[:digit:]]{4})/([[:digit:]]{1,2})/([[:digit:]]{1,2})");
+	//boost::regex r("([[:digit:]]{4})");
+	string str(buffer);
+	string tmp;
+	tmp = str;
+	boost::smatch m;
+	while (boost::regex_search (tmp,m,r)) {
+		//for (auto x:m) std::cout << x << " ";
+		//std::cout << std::endl;
+		cout << "Date: " << m[0].str() << endl;
+		cout << "The year " << m[1].str() << " The month " << m[2].str() << " The day " << m[3].str() << endl;
+		tmp = m.suffix().str();
+	}
+	PRINT("Second run");
+	tmp = str;
+	r.set_expression("([[:digit:]]{1,2})/([[:digit:]]{1,2})/([[:digit:]]{4})");
+	while (boost::regex_search (tmp,m,r)) {
+		//for (auto x:m) std::cout << x << " ";
+		//std::cout << std::endl;
+		cout << "Date: " << m[0].str() << endl;
+		cout << "The year " << m[3].str() << " The month " << m[1].str() << " The day " << m[2].str() << endl;
+		tmp = m.suffix().str();
+	}
+	PRINT("Third run");
+	tmp = str;
+	r.set_expression("([[:alpha:]]+) ([[:digit:]]{1,2})([, ]*)([[:digit:]]{4})");
+	while (boost::regex_search (tmp,m,r)) {
+//		for (auto x:m) std::cout << x << " ";
+//		std::cout << std::endl;
+//		cout << m[0].str() << endl;
+		cout << "Date: " << m[0].str() << endl;
+		cout << "The year " << m[4].str() << " The month " << m[1].str() << " The day " << m[2].str() << endl;
+		tmp = m.suffix().str();
 	}
 
 	return ok;

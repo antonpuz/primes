@@ -37,4 +37,13 @@ static std::map<std::string, int> MonthToNumber = {
 		{"december", 12}
 };
 
+static retVal stringToLower(std::string& str)
+{
+	for(std::string::iterator it=str.begin() ; it!=str.end() ; ++it)
+	{
+		*it = tolower(*it);
+	}
+	return ok;
+}
+
 #endif /* GDEFINES_H_ */

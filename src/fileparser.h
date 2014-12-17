@@ -30,10 +30,14 @@ public:
 	static retVal dummyFunc(std::string phrase);
 	static retVal handleTable(std::string phrase, std::string specialPhrase, std::vector< std::vector<std::string> >& dataCollector);
 	/*
+	//this function is used in order to iterate over the vector containing the interesting information that was retrieved from the
+	//wikipedia page and store it in the vector.
 	 * The type here indicates the kind of wikipedia page we got:
 	 * 1 - Table is devided by years, each year appears at the header of the table
 	 */
 	static retVal cropVector(std::vector<std::string>& data, int type, std::string extraData);
+	static retVal getDates (std::string fileName);
+
 
 private:
 

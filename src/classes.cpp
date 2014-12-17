@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <sstream>
 #include <vector>
+#include <string>
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -30,7 +32,7 @@ int main() {
 //Download & cache a web page
 	webparser crwl;
 	crwl.init(name.c_str());
-	string baseName = "http://indiatoday.intoday.in/story/chinese-president-hu-jintao-india-visit/1/179644.html";
+	string baseName = "http://lhakardiaries.com/2012/04/04/hu-jintao-was-shamed-during-his-recent-visit-to-india/";
 	crwl.setLink(baseName.c_str());
 	rt = crwl.execGet();
 
@@ -71,6 +73,8 @@ int main() {
 	htmlparser parser(name.c_str());
 	parser.parseFile();
 	parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
+
+	fileparser::getDates("out5.txt");
 
 	//The wikipedia parser
 //	name = "out1.txt";
