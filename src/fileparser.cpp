@@ -27,7 +27,7 @@ fileparser::~fileparser()
 	cout << "destructing the file parser " << endl;
 }
 
-retVal fileparser::parseFile(string startPhase, string endPhase, retVal (*handleFunc)(string phrase))
+retVal fileparser::parseFile(string startPhase, string endPhase, retVal (*handleFunc)(string phrase, std::vector<std::string>& v), std::vector<std::string>& linksV)
 {
 	ifstream is (pFileName, ifstream::in | ifstream::binary);
 	if(!is)
@@ -65,7 +65,7 @@ retVal fileparser::parseFile(string startPhase, string endPhase, retVal (*handle
 		{
 			cuttedData = data.substr(location, endLocation - location);
 			//cout << cuttedData << endl;
-			handleFunc(cuttedData);
+			handleFunc(cuttedData, linksV);
 		}
 		else
 		{
@@ -348,11 +348,12 @@ retVal fileparser::handleTable(std::string phrase, std::string specialPhrase, st
 	return ok;
 }
 
-retVal fileparser::dummyFunc(std::string phrase)
+retVal fileparser::getLinksFromGoogleSearch(std::string phrase, std::vector<std::string>& v)
 {
 	string pre = "<h3 class=\"r\"><a href=\"";
 	int loc = phrase.find_first_of("\"", pre.length() + 1);
-	PRINT(phrase.substr(pre.length(), loc-pre.length()));
+	//PRINT(phrase.substr(pre.length(), loc-pre.length()));
+	v.push_back(phrase.substr(pre.length(), loc-pre.length()));
 	return ok;
 }
 
@@ -416,7 +417,7 @@ retVal fileparser::cropVector(std::vector<std::string>& data, int type, std::str
 	return ok;
 }
 
-retVal fileparser::getDates (std::string fileName)
+retVal fileparser::getDates (std::string fileName, std::vector< std::vector<int> >& v, std::vector< std::string > mustAppear)
 {
 	ifstream is (fileName, ifstream::in | ifstream::binary);
 	if(!is)
@@ -443,14 +444,29 @@ retVal fileparser::getDates (std::string fileName)
 	PRINT("First run");
 	boost::regex r("([[:digit:]]{4})/([[:digit:]]{1,2})/([[:digit:]]{1,2})");
 	//boost::regex r("([[:digit:]]{4})");
-	string str(buffer);
+	string str(buffer, 5000);
+	stringToLower(str);
+
+	for(int testAppearance = 0 ; testAppearance < mustAppear.size() ; testAppearance++)
+	{
+		stringToLower(mustAppear[testAppearance]);
+		if(str.find(mustAppear[testAppearance]) == string::npos)return error;
+	}
+
 	string tmp;
+	string month;
 	tmp = str;
 	boost::smatch m;
+	vector<int> inv;
 	while (boost::regex_search (tmp,m,r)) {
 		//for (auto x:m) std::cout << x << " ";
 		//std::cout << std::endl;
 		cout << "Date: " << m[0].str() << endl;
+		inv.push_back(atoi(m[3].str().c_str()));
+		inv.push_back(atoi(m[2].str().c_str()));
+		inv.push_back(atoi(m[1].str().c_str()));
+		v.push_back(inv);
+		inv.clear();
 		cout << "The year " << m[1].str() << " The month " << m[2].str() << " The day " << m[3].str() << endl;
 		tmp = m.suffix().str();
 	}
@@ -461,6 +477,11 @@ retVal fileparser::getDates (std::string fileName)
 		//for (auto x:m) std::cout << x << " ";
 		//std::cout << std::endl;
 		cout << "Date: " << m[0].str() << endl;
+		inv.push_back(atoi(m[2].str().c_str()));
+		inv.push_back(atoi(m[1].str().c_str()));
+		inv.push_back(atoi(m[3].str().c_str()));
+		v.push_back(inv);
+		inv.clear();
 		cout << "The year " << m[3].str() << " The month " << m[1].str() << " The day " << m[2].str() << endl;
 		tmp = m.suffix().str();
 	}
@@ -472,7 +493,50 @@ retVal fileparser::getDates (std::string fileName)
 //		std::cout << std::endl;
 //		cout << m[0].str() << endl;
 		cout << "Date: " << m[0].str() << endl;
+		inv.push_back(atoi(m[2].str().c_str()));
+		month = m[1].str();
+		stringToLower(month);
+		inv.push_back(MonthToNumber[month]);
+		inv.push_back(atoi(m[4].str().c_str()));
+		v.push_back(inv);
+		inv.clear();
 		cout << "The year " << m[4].str() << " The month " << m[1].str() << " The day " << m[2].str() << endl;
+		tmp = m.suffix().str();
+	}
+	PRINT("Forth run");
+	tmp = str;
+	r.set_expression("([[:digit:]]{1,2}) ([[:alpha:]]+) ([[:digit:]]{4})");
+	while (boost::regex_search (tmp,m,r)) {
+//		for (auto x:m) std::cout << x << " ";
+//		std::cout << std::endl;
+//		cout << m[0].str() << endl;
+		cout << "Date: " << m[0].str() << endl;
+		inv.push_back(atoi(m[1].str().c_str()));
+		month = m[2].str();
+		stringToLower(month);
+		inv.push_back(MonthToNumber[month]);
+		inv.push_back(atoi(m[3].str().c_str()));
+		v.push_back(inv);
+		inv.clear();
+		cout << "The year " << m[3].str() << " The month " << m[2].str() << " The day " << m[1].str() << endl;
+		tmp = m.suffix().str();
+	}
+	PRINT("Fifth run");
+	tmp = str;
+	r.set_expression("([[:digit:]]{1,2}) ([[:alpha:]]+)([, ]*)([[:digit:]]{4})");
+	while (boost::regex_search (tmp,m,r)) {
+//		for (auto x:m) std::cout << x << " ";
+//		std::cout << std::endl;
+//		cout << m[0].str() << endl;
+		cout << "Date: " << m[0].str() << endl;
+		inv.push_back(atoi(m[1].str().c_str()));
+		month = m[2].str();
+		stringToLower(month);
+		inv.push_back(MonthToNumber[month]);
+		inv.push_back(atoi(m[4].str().c_str()));
+		v.push_back(inv);
+		inv.clear();
+		cout << "The year " << m[4].str() << " The month " << m[2].str() << " The day " << m[1].str() << endl;
 		tmp = m.suffix().str();
 	}
 

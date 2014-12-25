@@ -32,7 +32,7 @@ int main() {
 //Download & cache a web page
 	webparser crwl;
 	crwl.init(name.c_str());
-	string baseName = "http://lhakardiaries.com/2012/04/04/hu-jintao-was-shamed-during-his-recent-visit-to-india/";
+	string baseName = "https://www.google.co.il/search?q=Shinzo+Abe+Tony+Abbott+meets+OR+met+OR+visit&client=ubuntu&tbs=cdr%3A1%2Ccd_min%3A1.1.2013%2Ccd_max%3A31.12.2014&num=60";
 	crwl.setLink(baseName.c_str());
 	rt = crwl.execGet();
 
@@ -53,13 +53,51 @@ int main() {
 //		{
 //			cout << "DONE!" << endl;
 //
-//			fileparser psr(name.c_str());
-//			psr.parseFile("<h3 class=\"r\"><a href=\"", "</h3>", fileparser::dummyFunc);
+			fileparser psr(name.c_str());
+			vector <string> links;
+			psr.parseFile("<h3 class=\"r\"><a href=\"", "</h3>", fileparser::getLinksFromGoogleSearch, links);
+			for(int i=0;i<links.size();i++)PRINT(links[i]);
 //		}
 //
 //
 //	}
 
+	//Iterate over google links loop
+	std::vector< vector<int> > v;
+	std::vector< std::string > names = {"Shinzo", "Abe", "Tony", "Abbott"};
+
+	for(int linkNum = 0 ; linkNum < links.size() ; linkNum++)
+	{
+		PRINT("Checking link:");
+		PRINT(links[linkNum]);
+
+		webparser tmpCrwl;
+
+//		string aa("http://www.independent.co.uk/incoming/tony-abbott-embarrasses-australia-by-praising-japanese-wwii-military-getting-on-the-sake-and-posing-for-crotchshot-photo-opportunity-9596793.html");
+
+		tmpCrwl.init(name.c_str());
+		tmpCrwl.setLink(links[linkNum].c_str());
+//		tmpCrwl.setLink(aa.c_str());
+		rt = tmpCrwl.execGet();
+		if(rt == ok) // if the crawl succeded
+		{
+			htmlparser parser(name.c_str());
+			parser.parseFile();
+			parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
+
+			rt = fileparser::getDates("out5.txt", v, names);
+			if(rt == error)
+			{
+				PRINT("Getting dates was stopped in:");
+				PRINT(links[linkNum]);
+			}
+		}
+		else
+		{
+			PRINT("Bad");
+		}
+
+	}
 
 
 	//input data into mysql database
@@ -69,12 +107,56 @@ int main() {
 	cnt.initANDconnect(db.c_str());
 
 	//Parse the file with the html parser
-	name = "out1.txt";
-	htmlparser parser(name.c_str());
-	parser.parseFile();
-	parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
+//	name = "out1.txt";
+//	htmlparser parser(name.c_str());
+//	parser.parseFile();
+//	parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
 
-	fileparser::getDates("out5.txt");
+
+//	std::vector< vector<int> > v;
+//	fileparser::getDates("out5.txt", v);
+//
+
+	PRINT("Number of found dates:");
+	PRINT(v.size());
+
+//	for(int i = 0 ; i < v.size() ; i++)
+//	{
+//		cout << "year: " << v[i][2] << " month: " << v[i][1] << " day: " << v[i][0] << endl;
+//	}
+
+	std::vector< vector<int> > aggregatedDates;
+	for(std::vector< std::vector<int> >::iterator it = v.begin() ; it != v.end() ; ++it)
+	{
+		//it point to an internal vector which represents the dates
+		cout << "year: " << (*it)[2] << " month: " << (*it)[1] << " day: " << (*it)[0] << endl;
+		bool found = false;
+		for(std::vector< std::vector<int> >::iterator aggit = aggregatedDates.begin() ; (aggit != aggregatedDates.end()) && !found ; ++aggit)
+		{
+			//check if the visit was on the same year and month and at most 4 days apart
+			if(((*it)[2] == (*aggit)[2]) && ((*it)[1] == (*aggit)[1]) && ((*it)[0]-(*aggit)[0] >= -7) && ((*it)[0]-(*aggit)[0] <= 7))
+			{
+				(*aggit)[3]++;
+				found = true;
+			}
+		}
+		if (!found)
+		{
+			std::vector<int> tmp(*it);
+			tmp.push_back(1);
+			aggregatedDates.push_back(tmp);
+		}
+	}
+
+	PRINT("Printing only the meeting dates");
+	for(std::vector< std::vector<int> >::iterator it = aggregatedDates.begin() ; it != aggregatedDates.end() ; ++it)
+	{
+		//check if the visit was on the same year and month and at most 4 days apart
+		if( (*it)[3] >= 4)
+		{
+			cout << "year: " << (*it)[2] << " month: " << (*it)[1] << " day: " << (*it)[0] << endl;
+		}
+	}
 
 	//The wikipedia parser
 //	name = "out1.txt";

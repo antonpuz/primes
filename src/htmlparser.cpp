@@ -107,7 +107,7 @@ PRINT("place 2");
 		  exit(0);
 	  }
 	  memcpy(ptr, output.bp, output.size);
-	  printf( "\nAnd here is the result:\n\n%s", ptr);
+	  //printf( "\nAnd here is the result:\n\n%s", ptr);
 
 	  tidyBufFree( &output );
 	  tidyBufFree( &errbuf );

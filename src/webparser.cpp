@@ -41,6 +41,8 @@ retVal webparser::init(const char* outputFileNameStr)
 	    /* set the agent - to mock a browser */
 	    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:31.0) Gecko/20100101 Firefox/31.0");
 
+	    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+
 	    /* send all data to this function  */
 	    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, filePtr);
