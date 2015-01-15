@@ -100,7 +100,8 @@ retVal htmlparser::parseFile()
 	  //else
 	    //printf( "A severe error (%d) occurred.\n", rc );
 PRINT("place 2");
-		ptr = (char *)malloc(output.size);
+		ptr = new char[output.size];
+		//ptr = (char *)malloc(output.size);
 	  if(!ptr)
 	  {
 		  PRINT("could not alloc");

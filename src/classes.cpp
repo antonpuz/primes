@@ -36,9 +36,18 @@ int main() {
 	string queryEnd = "meets+OR+met+OR+visit&client=ubuntu&tbs=cdr%3A1%2Ccd_min%3A1.1.2014%2Ccd_max%3A31.12.2014&num=60";
 	vector< vector<string> > tokenVector;
 
+	//the search link
+	//https://www.google.co.il/search?q=Pranab+Mukherjee+Giorgio+Napolitano+meets+OR+met+OR+visit&client=ubuntu&tbs=cdr%3A1%2Ccd_min%3A1.1.2014%2Ccd_max%3A31.12.2014&num=60
+	//problem with the link:
+//	string linkssss = "http://newsnow.in/news/-india-china-ties-need-to-focus-on-investment-";
+//	std::vector< std::string > namessss = {"Mamnoon", "Hussain", "Joachim", "Gauck"};
+//	std::vector< vector<int> > vsss;
+//
+//	processGoogleLink(linkssss, namessss, vsss);
+//
+//	exit(1);
+
 //Download & cache a web page
-
-
 
 //	string baseName = "https://www.google.co.il/search?hl=en&q=Hu+Jintao+visits+india&tbas=0&start=";
 //	for(int j=0;j<=20;j+=20)
@@ -73,17 +82,33 @@ int main() {
 	int firstCountryID = 0;
 	int secondCountryID = 0;
 
+	bool firstRun = true;
+	bool firstRunFlagForSecond = false;
 	for(map<int, vector<string>>::iterator it = yearToLeadersMap.begin() ; it!=yearToLeadersMap.end() ; ++it)
 	{
 		if(it->first != 2014) continue;
 		for(vector<string>::iterator vit=it->second.begin() ; vit != it->second.end() ; ++vit,firstCountryID++)
 		{
+			if(firstRun)
+			{
+				firstRun = false;
+				vit+=58;
+				firstCountryID+=58;
+				//firstRunFlagForSecond = true;
+			}
 			string leader(*vit);
 			if(leader.compare("1") == 0)continue;
 
 			secondCountryID=firstCountryID+1;
 			for(vector<string>::iterator innerIt=vit+1 ; innerIt != it->second.end() ; ++innerIt,secondCountryID++)
 			{
+//				if(firstRunFlagForSecond)
+//				{
+//					innerIt+=30;
+//					secondCountryID+=30;
+//					firstRunFlagForSecond = false;
+//				}
+
 				string innerLeader(*innerIt);
 				if(innerLeader.compare("1") == 0)continue;
 				if((firstCountryID/2) == (secondCountryID/2))continue; //if its the same country - continue
@@ -178,7 +203,9 @@ int main() {
 					}
 				}
 
-				sleep(40);
+				cnt.closeSession();
+
+				sleep(5);
 				/***********************************************************************/
 			}
 		}
@@ -284,16 +311,23 @@ void processGoogleLink (string query, vector<string> mustAppear, std::vector< ve
 
 
 //	string aa("http://www.independent.co.uk/incoming/tony-abbott-embarrasses-australia-by-praising-japanese-wwii-military-getting-on-the-sake-and-posing-for-crotchshot-photo-opportunity-9596793.html");
-
 	tmpCrwl.init(name.c_str());
-	tmpCrwl.setLink(query.c_str());
+	PRINT(query.c_str());
+	rt = tmpCrwl.setLink(query.c_str());
+	if(rt != ok)
+	{
+		PRINT("Link in black list");
+		return;
+	}
 //	tmpCrwl.setLink(aa.c_str());
 	rt = tmpCrwl.execGet();
 	if(rt == ok) // if the crawl succeded
 	{
 		htmlparser parser(name.c_str());
 		parser.parseFile();
-		parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
+		rt = parser::removeEmptyLinesInFile("out4.txt", "out5.txt");
+		if(rt == error)
+			return;
 
 		rt = fileparser::getDates("out5.txt", v, mustAppear);
 		if(rt == error)

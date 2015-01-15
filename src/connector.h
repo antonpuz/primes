@@ -22,6 +22,7 @@ public:
 
 	retVal initANDconnect(const char* DBName);
 	MYSQL_RES* runQuery(const char* query);
+	retVal closeSession();
 
 private:
 	int k;

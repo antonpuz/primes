@@ -61,3 +61,9 @@ MYSQL_RES* connector::runQuery(const char* query)
 	pResourceReply = mysql_use_result(connection);
 	return pResourceReply;
 }
+
+retVal connector::closeSession()
+{
+	mysql_close(connection);
+	return ok;
+}

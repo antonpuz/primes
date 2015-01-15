@@ -43,6 +43,9 @@ retVal parser::removeEmptyLinesInFile(const char* sourceFile, const char* destFi
 	while( !ifs.eof() )
 	{
 		ifs.getline(lineBuff, 8000);
+		if(ifs.fail()){
+			return error;
+		}
 		if((lineBuff[0] != '\0'))
 		{
 			of << lineBuff;

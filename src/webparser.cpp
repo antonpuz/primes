@@ -42,6 +42,7 @@ retVal webparser::init(const char* outputFileNameStr)
 	    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:31.0) Gecko/20100101 Firefox/31.0");
 
 	    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+	    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 3L);
 
 	    /* send all data to this function  */
 	    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
@@ -79,6 +80,7 @@ retVal webparser::execGet()
 	//check if the file already exists in cache - if not donwload it otherwise use the cached version
 	string path = "cache/";
 	path += urlCpy;
+	PRINT("CHECK FILE");
 	if( access( path.c_str(), F_OK ) != -1 ) {
 	    PRINT("file exists in cache");
 	    PRINT(path.c_str());
@@ -92,6 +94,7 @@ retVal webparser::execGet()
 
 	    return ok;
 	} else { // file doesnt exist - run the curl query and copy to cache
+		PRINT("NO EXIST");
 		res = curl_easy_perform(curl);
 		PRINT("Getting the file");
 	    /* Check for errors */
@@ -124,6 +127,15 @@ retVal webparser::setLink(const char* webSiteLinkStr)
 	urlCpy = webSiteLinkStr;
 	urlCpy = urlCpy.substr(urlCpy.find_last_of('/', urlCpy.length()-2) + 1);
 	if(urlCpy[urlCpy.length()-1] == '/')urlCpy[urlCpy.length()-1]='0';
+
+	if(blackList.compare(webSiteLinkStr) == 0)return error;
+	if(blackList2.compare(webSiteLinkStr) == 0)return error;
+	//if(blackList3.compare(webSiteLinkStr) == 0)return error;
+	if(blackList4.compare(webSiteLinkStr) == 0)return error;
+	if(blackList5.compare(webSiteLinkStr) == 0)return error;
+	//if(blackList6.compare(webSiteLinkStr) == 0)return error;
+	if(blackList7.compare(webSiteLinkStr) == 0)return error;
+	if(blackList8.compare(webSiteLinkStr) == 0)return error;
 
 	curl_easy_setopt(curl, CURLOPT_URL, webSiteLinkStr); // should be changed later with setLink()
 	return ok;

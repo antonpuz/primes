@@ -16,6 +16,17 @@
 #define DBG(str) if(Debug) cout << str << endl;
 #define PRINT(str) cout << str << endl;
 
+static std::string blackList = "http://newsnow.in/news/tunisians-head-to-elect-president-in-runoff-u-t-san-diego";
+static std::string blackList2 = "http://consortiumnews.com/2014/10/30/russiaskey-role-in-iran-nuke-deal/";
+//static std::string blackList3 = "http://newsnow.in/news/terrorist-don-t-deserve-any-concession-pak-presiden";
+static std::string blackList4 = "http://consortiumnews.com/2014/04/29/kerry-grovels-over-israeli-apartheid/";
+static std::string blackList5 = "http://www.newsnow.in/news/bangladesh-president-to-arrive-in-india-tomorrow-on-six-day-visit-zee-news";
+//static std::string blackList6 = "http://newsnow.in/news/-india-china-ties-need-to-focus-on-investment-";
+static std::string blackList7 = "http://newsnow.in/news/fm-meets-modi-discusses-economic-performance";
+static std::string blackList8 = "http://www.siemens.com/press/political-dialogue";
+//http://www.newsnow.in/news/bangladesh-president-to-arrive-in-india-tomorrow-on-six-day-visit-zee-news
+
+
 typedef enum
 {
 	ok,
